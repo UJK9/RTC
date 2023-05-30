@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Receiver</title>
+  </head>
+  <body>
+    <h1>Video Receiver</h1>
+    <div id="videoContainer"></div>
+    <video id="video" width="640" height="480" controls></video>
+    <br>
+    <button id="playButton" type="button">Play</button>
+    <button id="pauseButton" type="button">Pause</button>
+    <button id="muteButton" type="button">Mute</button>
+    <button id="unmuteButton" type="button">Unmute</button>
+    <button id="startButton" type="button">Start Stream</button>
+    <button class="removepic" type="button">Remove Video</button>
+
+    <script>
+      // Establish a WebSocket connection
+      const socket = new WebSocket("ws://192.168.100.75:3000");
+      let videoURL = null;
+
+      socket.onmessage = function(event) {
+        
+        
+
+        const message = event.data;
+
+        try {
+          const parsedMessage = JSON.parse(message);
+
+          switch (parsedMessage.type) {
+            case "start":
+              console.log("Received start message");
+              break;
+            case "video-info":
+              console.log("Received video info:", parsedMessage.fileSize);
+              break;
+            case "blob":
+              handleBlobMessage(parsedMessage.blob);
+              break;
+            default:
+              console.log("Unknown message type:", parsedMessage.type);
+          }
+        } catch (error) {
+          console.error("Error parsing WebSocket message:", error);
+        }
+      };
+
+      function handleBlobMessage(blob) {
+        // Handle the received Blob object here
+        console.log("Received Blob:", blob);
+
+        // Revoke the previous video URL, if any
+        if (videoURL !== null) {
+          URL.revokeObjectURL(videoURL);
+        }
+
+        // Create a new URL for the Blob and set it as the video source
+        videoURL = URL.createObjectURL(blob);
+        const videoElement = document.getElementById("video");
+        videoElement.src = videoURL;
+
+        // Add an event listener for the 'canplay' event
+        videoElement.addEventListener("canplay", () => {
+          // Play the video when it is ready
+          videoElement.play().catch((error) => {
+            console.error("Error playing the video:", error);
+          });
+        });
+      }
+
+      // Handle WebSocket events
+      socket.addEventListener("open", () => {
+        console.log("WebSocket connection established");
+
+        // Start the stream when the button is clicked
+        document.getElementById("startButton").addEventListener("click", function() {
+          // Send a "start" message to the server
+          socket.send(JSON.stringify({ type: "start" }));
+        });
+      });
+
+      socket.addEventListener("close", () => {
+        console.log("WebSocket connection closed");
+      });
+
+      // Remove video and stop playback
+      document.querySelector(".removepic").addEventListener("click", function() {
+        const player = document.getElementById("video");
+        player.pause();
+        player.src = "";
+        player.load();
+      });
+    </script>
+  </body>
+</html>
