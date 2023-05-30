@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "websocket": "^1.0.34",
+    "ws": "^8.13.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "name": "nwebrtc",
+  "description": "RECEIVER.JS\r In this receiver.js script, a WebSocket connection is created to communicate with the sender. When the WebSocket connection is open, the initWebRTC() function is called to initialize the WebRTC connection.",
+  "version": "1.0.0",
+  "main": "server.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
